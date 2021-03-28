@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
+[System.Serializable]
+public class UnityEventWithString : UnityEvent<string> { }
+
 public class GameController : MonoBehaviour
 {
     private static GameController instance;
@@ -10,15 +13,22 @@ public class GameController : MonoBehaviour
     {
         DEFAULT,      // Fall-back state, should never happen
         STARTTURN,    // On start of turn (random place flag)
-        PLAYING,      // While a button is pressed and held
-        BALLWAIT,     // Waiting for ball to stop after button released
+        PLAYING,      // While a left click is pressed and held
+        GAMEOVER,     // Player is lost
         ENDTURN,      // On end of turn
         WAITING       // Waiting for the user action (e.g. click button)
     }
     private StateType state = StateType.STARTTURN;
 
+    [SerializeField] private float startNewRoundDelay;
+    [SerializeField] private float parabolaSpeedIncrease;
     [SerializeField] private UnityEvent startTurnEvent;
-    [SerializeField] private UnityEvent launchBallEvent;
+    [SerializeField] private UnityEvent startPlayingEvent;
+    [SerializeField] private UnityEventWithString endTurnEvent;
+    [SerializeField] private UnityEventWithString gameOverEvent;
+
+    private int currentScore = 0;
+    private int bestScore;
 
     private void Start()
     {
@@ -46,35 +56,59 @@ public class GameController : MonoBehaviour
     {
         state = newState;
     }
+    public StateType GetState()
+    {
+        return state;
+    }
+    public void ClearScore()
+    {
+        currentScore = 0;
+    }
+
+    public IEnumerator StartNewRound(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        SetState(StateType.STARTTURN);
+    }
+    public void StartNewRound()
+    {
+        SetState(StateType.STARTTURN);
+    }
 
     private void Update()
     {
         switch (state)
         {
             case StateType.STARTTURN:
-                Debug.Log("STARTTURN !");
                 startTurnEvent.Invoke();
                 SetState(StateType.PLAYING);
                 break;
 
             case StateType.PLAYING:
-                Debug.Log("PLAYING");
                 if (Input.GetKey(KeyCode.Mouse0))
                 {
-                    Debug.Log("CLICKED !");
+                    startPlayingEvent.Invoke();
                     SetState(StateType.WAITING);
-                    launchBallEvent.Invoke();
                 }
                 break;
 
-            case StateType.BALLWAIT:
-                Debug.Log("BALL WAIT !");
-                //...
+            case StateType.GAMEOVER:
+                SetState(StateType.WAITING);
+                if (bestScore < currentScore)
+                {
+                    bestScore = currentScore;
+                }
+                string message = ($"SCORE: {currentScore} BEST: {bestScore}");
+                gameOverEvent.Invoke(message);
                 break;
 
             case StateType.ENDTURN:
-                //...
+                currentScore += 1;
+                endTurnEvent.Invoke(currentScore.ToString());
+                BallController.GetInstance().IncreaseParabolaSpeed(parabolaSpeedIncrease);
+
                 SetState(StateType.WAITING);
+                StartCoroutine(StartNewRound(startNewRoundDelay));
                 break;
 
             case StateType.WAITING:
@@ -83,6 +117,8 @@ public class GameController : MonoBehaviour
             default:
                 Debug.Log("Unknown game state: " + state);
                 break;
+
         }
+        Debug.Log(state);
     }
 }

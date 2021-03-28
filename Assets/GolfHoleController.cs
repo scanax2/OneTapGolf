@@ -4,26 +4,66 @@ using UnityEngine;
 
 public class GolfHoleController : MonoBehaviour
 {
-    [SerializeField] private Transform spawnPoint;
+    private static GolfHoleController instance;
+
+    [SerializeField] private Transform spawnPointTransform;
     [SerializeField] private float spawnLength;  // length on X-axis
+
+    private Vector3 defaultSpawnPosition;
+    private bool hit;
 
     private void Awake()
     {
-        if (!spawnPoint)
+        if (instance == null)
         {
-            spawnPoint = transform;
+            instance = this;
         }
+        else if (instance == this)
+        {
+            Destroy(gameObject);
+        }
+
+        if (!spawnPointTransform)
+        {
+            spawnPointTransform = transform;
+        }
+        defaultSpawnPosition = spawnPointTransform.position;
+    }
+    public static GolfHoleController GetInstance()
+    {
+        if (instance == null)
+        {
+            instance = new GolfHoleController();
+        }
+        return instance;
+    }
+
+    public float GetPositionX()
+    {
+        return transform.position.x;
     }
 
     public void PlaceFlag()
     {
         Debug.Log("Flag placed !");
+        hit = false;
         float randomX = Random.Range(0, spawnLength);
         Vector3 spawnPosition = new Vector3(
-            spawnPoint.position.x + randomX,
-            spawnPoint.position.y,
-            spawnPoint.position.z);
+            defaultSpawnPosition.x + randomX,
+            defaultSpawnPosition.y,
+            defaultSpawnPosition.z);
         transform.position = spawnPosition;
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        // Ball hit the hole
+        if (collision.tag == "Ball" && !hit)
+        {
+            Debug.Log("Hit !");
+            hit = true;
+            GameController.GetInstance().SetState(GameController.StateType.ENDTURN);
+        }
     }
 
     // Debug, optional
@@ -33,16 +73,16 @@ public class GolfHoleController : MonoBehaviour
         try
         {
             startPointPosition = new Vector3(
-                spawnPoint.position.x,
-                spawnPoint.position.y + 0.5f,
-                spawnPoint.position.z);
+                defaultSpawnPosition.x,
+                defaultSpawnPosition.y + 0.5f,
+                defaultSpawnPosition.z);
         } catch(UnassignedReferenceException ex)
         {
-            spawnPoint = transform;
+            spawnPointTransform = transform;
             startPointPosition = new Vector3(
-                spawnPoint.position.x,
-                spawnPoint.position.y + 0.5f,
-                spawnPoint.position.z);
+                defaultSpawnPosition.x,
+                defaultSpawnPosition.y + 0.5f,
+                defaultSpawnPosition.z);
             Debug.Log("Exception: spawn point is not assigned !");
         }
         Vector3 endPointPosition = new Vector3(

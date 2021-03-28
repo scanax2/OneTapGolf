@@ -5,8 +5,6 @@ using UnityEngine.Events;
 
 public class LaunchArcRenderer : MonoBehaviour
 {
-    [Header("Arc attributes")]
-    [SerializeField] private float speedOfParabola = 1.0f;
     [SerializeField] private int resolution = 10;
     [SerializeField] float angle = 45;
 
@@ -14,6 +12,8 @@ public class LaunchArcRenderer : MonoBehaviour
     private LineRenderer lr;
 
     private float g; // force of gravity on Y-axis
+    private float parabolaSpeed;
+
     [SerializeField] private float velocity;
 
     private UnityEvent launchBall;
@@ -26,19 +26,23 @@ public class LaunchArcRenderer : MonoBehaviour
 
     private void Update()
     {
-        if (!Input.GetMouseButtonUp(0) && display)
+        Vector3 farRightPoint = lr.GetPosition(lr.positionCount - 1);
+
+        // Left click is holding down
+        if (!Input.GetMouseButtonUp(0) && !IsOutOfBounds(farRightPoint) && display)
         {
             DisplayParabola();
-            velocity += speedOfParabola * Time.deltaTime;
+            velocity += parabolaSpeed * Time.deltaTime;
         }
-        else if (Input.GetMouseButtonUp(0) && display)
+        // Left click is released or trajectory is out of bounds
+        else if ((Input.GetMouseButtonUp(0) || IsOutOfBounds(farRightPoint)) && display)
         {
             display = false;
 
             Transform parent = transform.parent;
             transform.parent = null;
 
-            // Launch
+            // Launch ball
             float angleInRadians = angle * Mathf.Deg2Rad;
             Vector2 resultVelocity = new Vector2(
                 50.20458f * Mathf.Cos(angleInRadians) * velocity,
@@ -46,15 +50,20 @@ public class LaunchArcRenderer : MonoBehaviour
                 );
             parent.gameObject.GetComponent<BallController>().LaunchBall(resultVelocity);
 
-            GameController.GetInstance().SetState(GameController.StateType.BALLWAIT);
-            Destroy(gameObject);
+            GameController.GetInstance().SetState(GameController.StateType.WAITING);
         }
     }
-
-    public void StartTurn()
+    private bool IsOutOfBounds(Vector3 position)
     {
+        Vector3 screenPoint = Camera.main.WorldToViewportPoint(position);
+        bool onScreen = screenPoint.x > 0 && screenPoint.x < 1.3;
+        return !onScreen;
+    }
+
+    public void StartTurn(float speed)
+    {
+        parabolaSpeed = speed;
         velocity = 2.0f;
-        Debug.Log("Turn Launched !");
         display = true;
     }
 
@@ -71,7 +80,7 @@ public class LaunchArcRenderer : MonoBehaviour
 
         for (int i = 0; i <= resolution; i++)
         {
-            float t = (float)i / (float)resolution;
+            float t = (float)i/resolution;
             arcArray[i] = CalculateArcPoint(t, maxDistance, radianAngle);
         }
 
