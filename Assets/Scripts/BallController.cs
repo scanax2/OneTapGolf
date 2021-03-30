@@ -11,12 +11,15 @@ public class BallController : MonoBehaviour
 
     [SerializeField] private Transform spawnPointTransform;
     [SerializeField] private GameObject arcTrajectoryPrefab;
-    [SerializeField] private float parabolaSpeed;
 
     private Rigidbody2D rb;
     private GameObject arc;
+
+    private float parabolaSpeed;
+
     private bool launched;
     private bool hit;
+
     private void Awake()
     {
         if (instance == null)
@@ -42,6 +45,10 @@ public class BallController : MonoBehaviour
         }
         return instance;
     }
+    public void SetParabolaSpeed(float speed)
+    {
+        parabolaSpeed = speed;
+    }
     public void IncreaseParabolaSpeed(float speed)
     {
         parabolaSpeed += speed;
@@ -54,16 +61,20 @@ public class BallController : MonoBehaviour
 
     public void PlaceBall()
     {
+        transform.eulerAngles = Vector3.zero;
+        rb.velocity = new Vector2(0.0f, 0.0f);
+        rb.angularVelocity = 0.0f;
+
         launched = false;
         hit = false;
-        rb.velocity = new Vector3(0.0f, 0.0f);
+
         transform.position = spawnPointTransform.position;
     }
     public void StartArc()
     {
         arc = Instantiate(arcTrajectoryPrefab, transform.position, Quaternion.identity);
         arc.transform.parent = transform;
-        arc.GetComponent<LaunchArcRenderer>().StartTurn(parabolaSpeed);
+        arc.GetComponent<LaunchArcRenderer>().InitParabola(parabolaSpeed);
     }
     public void DestroyArc()
     {
@@ -73,24 +84,27 @@ public class BallController : MonoBehaviour
     public void LaunchBall(Vector2 velocity)
     {
         rb.AddForce(velocity);
-        StartCoroutine(SetIsLaunched());
+        StartCoroutine(SetLaunched(true));
     }
 
-    private IEnumerator SetIsLaunched()
+    private IEnumerator SetLaunched(bool flag)
     {
         yield return new WaitForSeconds(0.25f);
-        launched = true;
+        launched = flag;
     }
 
     private void Update()
     {
-        bool behindGolfHole = (GolfHoleController.GetInstance().GetPositionX() + 0.5f < transform.position.x);
-        bool inFrontOfGolfHole = (launched && rb.velocity == new Vector2(0.0f, 0.0f));
-
-        // Ball fails to hit 
-        if ((inFrontOfGolfHole || behindGolfHole) && !hit)
+        if (GameController.GetInstance().GetState() == GameController.StateType.WAITINGBALL)
         {
-            GameController.GetInstance().SetState(GameController.StateType.GAMEOVER);
+            bool behindGolfHole = (GolfHoleController.GetInstance().GetPositionX() + 0.5f < transform.position.x);
+            bool inFrontOfGolfHole = (launched && rb.velocity == new Vector2(0.0f, 0.0f));
+
+            // Ball fails to hit 
+            if ((inFrontOfGolfHole || behindGolfHole) && !hit)
+            {
+                GameController.GetInstance().SetState(GameController.StateType.GAMEOVER);
+            }
         }
     }
 }

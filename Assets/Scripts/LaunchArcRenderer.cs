@@ -5,18 +5,15 @@ using UnityEngine.Events;
 
 public class LaunchArcRenderer : MonoBehaviour
 {
-    [SerializeField] private int resolution = 10;
+    [SerializeField] private int resolution = 20;
     [SerializeField] float angle = 45;
 
     private bool display = false;
     private LineRenderer lr;
 
-    private float g; // force of gravity on Y-axis
+    private float g; // gravity force on Y-axis
     private float parabolaSpeed;
-
-    [SerializeField] private float velocity;
-
-    private UnityEvent launchBall;
+    private float velocity;
 
     private void Awake()
     {
@@ -44,13 +41,12 @@ public class LaunchArcRenderer : MonoBehaviour
 
             // Launch ball
             float angleInRadians = angle * Mathf.Deg2Rad;
-            Vector2 resultVelocity = new Vector2(
+            Vector2 ballVelocity = new Vector2(
                 50.20458f * Mathf.Cos(angleInRadians) * velocity,
                 50.20458f * Mathf.Sin(angleInRadians) * velocity
                 );
-            parent.gameObject.GetComponent<BallController>().LaunchBall(resultVelocity);
-
-            GameController.GetInstance().SetState(GameController.StateType.WAITING);
+            parent.gameObject.GetComponent<BallController>().LaunchBall(ballVelocity);
+            GameController.GetInstance().SetState(GameController.StateType.WAITINGBALL);
         }
     }
     private bool IsOutOfBounds(Vector3 position)
@@ -60,7 +56,7 @@ public class LaunchArcRenderer : MonoBehaviour
         return !onScreen;
     }
 
-    public void StartTurn(float speed)
+    public void InitParabola(float speed)
     {
         parabolaSpeed = speed;
         velocity = 2.0f;
@@ -94,8 +90,4 @@ public class LaunchArcRenderer : MonoBehaviour
         return new Vector3(x, y);
     }
 
-    public void DestroyArc()
-    {
-        Destroy(gameObject);
-    }
 }

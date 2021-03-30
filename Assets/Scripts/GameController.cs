@@ -5,6 +5,8 @@ using UnityEngine.Events;
 
 [System.Serializable]
 public class UnityEventWithString : UnityEvent<string> { }
+[System.Serializable]
+public class UnityEventWithBool : UnityEvent<bool> { }
 
 public class GameController : MonoBehaviour
 {
@@ -12,16 +14,21 @@ public class GameController : MonoBehaviour
     public enum StateType
     {
         DEFAULT,      // Fall-back state, should never happen
-        STARTTURN,    // On start of turn (random place flag)
-        PLAYING,      // While a left click is pressed and held
-        GAMEOVER,     // Player is lost
-        ENDTURN,      // On end of turn
-        WAITING       // Waiting for the user action (e.g. click button)
+        STARTGAME,    // On start of new game
+        STARTROUND,   // On start of turn (random place flag)
+        PLAYING,      // While left click is pressed and held
+        ENDROUND,     // On end of turn
+        GAMEOVER,     // Player lost
+        WAITING,      // Waiting for the user action (e.g. click button)
+        WAITINGBALL   // Waiting for the ball actions
     }
-    private StateType state = StateType.STARTTURN;
+    private StateType state;
 
     [SerializeField] private float startNewRoundDelay;
+    [SerializeField] private float parabolaStartSpeed;
     [SerializeField] private float parabolaSpeedIncrease;
+
+    [SerializeField] private UnityEvent startGameEvent;
     [SerializeField] private UnityEvent startTurnEvent;
     [SerializeField] private UnityEvent startPlayingEvent;
     [SerializeField] private UnityEventWithString endTurnEvent;
@@ -32,6 +39,8 @@ public class GameController : MonoBehaviour
 
     private void Start()
     {
+        state = StateType.STARTGAME;
+
         // Singleton pattern
         if (instance == null)
         {
@@ -60,26 +69,33 @@ public class GameController : MonoBehaviour
     {
         return state;
     }
-    public void ClearScore()
+    public void StartNewGame()
     {
+        SetState(StateType.STARTGAME);
+    }
+    public void ResetGame()
+    {
+        BallController.GetInstance().SetParabolaSpeed(parabolaStartSpeed);
         currentScore = 0;
     }
 
     public IEnumerator StartNewRound(float delay)
     {
         yield return new WaitForSeconds(delay);
-        SetState(StateType.STARTTURN);
-    }
-    public void StartNewRound()
-    {
-        SetState(StateType.STARTTURN);
+        SetState(StateType.STARTROUND);
     }
 
     private void Update()
     {
         switch (state)
         {
-            case StateType.STARTTURN:
+            case StateType.STARTGAME:
+                startGameEvent.Invoke();
+                ResetGame();
+                SetState(StateType.STARTROUND);
+                break;
+
+            case StateType.STARTROUND:
                 startTurnEvent.Invoke();
                 SetState(StateType.PLAYING);
                 break;
@@ -88,21 +104,30 @@ public class GameController : MonoBehaviour
                 if (Input.GetKey(KeyCode.Mouse0))
                 {
                     startPlayingEvent.Invoke();
-                    SetState(StateType.WAITING);
+                    SetState(StateType.WAITINGBALL);
                 }
+                break;
+
+            case StateType.WAITINGBALL:
                 break;
 
             case StateType.GAMEOVER:
-                SetState(StateType.WAITING);
+                bool isHighscore = false;
                 if (bestScore < currentScore)
                 {
                     bestScore = currentScore;
+                    isHighscore = true;
                 }
-                string message = ($"SCORE: {currentScore} BEST: {bestScore}");
+                var message = ($"SCORE: {currentScore} BEST: {bestScore}");
+                if (isHighscore)
+                {
+                    message += "\n New highscore !";
+                }
                 gameOverEvent.Invoke(message);
+                SetState(StateType.WAITING);
                 break;
 
-            case StateType.ENDTURN:
+            case StateType.ENDROUND:
                 currentScore += 1;
                 endTurnEvent.Invoke(currentScore.ToString());
                 BallController.GetInstance().IncreaseParabolaSpeed(parabolaSpeedIncrease);
@@ -119,6 +144,6 @@ public class GameController : MonoBehaviour
                 break;
 
         }
-        Debug.Log(state);
+
     }
 }

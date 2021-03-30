@@ -6,9 +6,8 @@ public class GolfHoleController : MonoBehaviour
 {
     private static GolfHoleController instance;
 
-    [SerializeField] private Transform spawnPointTransform;
     [SerializeField] private float spawnLength;  // length on X-axis
-
+    private Transform spawnPointTransform;
     private Vector3 defaultSpawnPosition;
     private bool hit;
 
@@ -45,7 +44,6 @@ public class GolfHoleController : MonoBehaviour
 
     public void PlaceFlag()
     {
-        Debug.Log("Flag placed !");
         hit = false;
         float randomX = Random.Range(0, spawnLength);
         Vector3 spawnPosition = new Vector3(
@@ -60,31 +58,23 @@ public class GolfHoleController : MonoBehaviour
         // Ball hit the hole
         if (collision.tag == "Ball" && !hit)
         {
-            Debug.Log("Hit !");
             hit = true;
-            GameController.GetInstance().SetState(GameController.StateType.ENDTURN);
+            GameController.GetInstance().SetState(GameController.StateType.ENDROUND);
         }
     }
 
-    // Debug, optional
+    // For debug, optional
     private void OnDrawGizmosSelected()
     {
-        Vector3 startPointPosition;
-        try
+        if (!spawnPointTransform)
         {
-            startPointPosition = new Vector3(
-                defaultSpawnPosition.x,
-                defaultSpawnPosition.y + 0.5f,
-                defaultSpawnPosition.z);
-        } catch(UnassignedReferenceException ex)
-        {
-            spawnPointTransform = transform;
-            startPointPosition = new Vector3(
-                defaultSpawnPosition.x,
-                defaultSpawnPosition.y + 0.5f,
-                defaultSpawnPosition.z);
-            Debug.Log("Exception: spawn point is not assigned !");
+            defaultSpawnPosition = transform.position;
         }
+        Vector3 startPointPosition = new Vector3(
+                defaultSpawnPosition.x,
+                defaultSpawnPosition.y + 0.5f,
+                defaultSpawnPosition.z); ;
+
         Vector3 endPointPosition = new Vector3(
             startPointPosition.x + spawnLength, 
             startPointPosition.y, 

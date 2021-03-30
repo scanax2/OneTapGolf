@@ -13,9 +13,10 @@ GameObject:
   - component: {fileID: 47184917}
   - component: {fileID: 47184916}
   - component: {fileID: 47184918}
+  - component: {fileID: 392800706}
   m_Layer: 0
   m_Name: Ball
-  m_TagString: Untagged
+  m_TagString: Ball
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -98,7 +99,7 @@ Rigidbody2D:
   m_UseAutoMass: 0
   m_Mass: 1
   m_LinearDrag: 0
-  m_AngularDrag: 8
+  m_AngularDrag: 10
   m_GravityScale: 1
   m_Material: {fileID: 6200000, guid: e097e83b1fa67ba42a1e8dd9f73d7086, type: 2}
   m_Interpolate: 0
@@ -133,5 +134,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba86a68433b5ec54f98c004e098e430f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spawnPoint: {fileID: 0}
-  arcTrajectoryPrefab: {fileID: 0}
+  spawnPointTransform: {fileID: 0}
+  arcTrajectoryPrefab: {fileID: 727941379357347583, guid: d5815d030c952434b8dca8df92854663,
+    type: 3}
+--- !u!58 &392800706
+CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1378405650892299580}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  serializedVersion: 2
+  m_Radius: 0.32
