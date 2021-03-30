@@ -112,14 +112,14 @@ public class GameController : MonoBehaviour
                 break;
 
             case StateType.GAMEOVER:
-                bool isHighscore = false;
+                bool highscore = false;
                 if (bestScore < currentScore)
                 {
                     bestScore = currentScore;
-                    isHighscore = true;
+                    highscore = true;
                 }
                 var message = ($"SCORE: {currentScore} BEST: {bestScore}");
-                if (isHighscore)
+                if (highscore)
                 {
                     message += "\n New highscore !";
                 }

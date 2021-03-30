@@ -7,9 +7,9 @@ using UnityEngine.Events;
 public class ManageLevelColliders : MonoBehaviour
 {
     // Deactivate colliders while the ball is in the trigger
-    public UnityEventWithBool collidersDeactivateEvent;
+    [SerializeField] private UnityEventWithBool collidersDeactivateEvent;
     // Activate colliders while the ball is in the trigger
-    public UnityEventWithBool collidersActivateEvent;
+    [SerializeField] private UnityEventWithBool collidersActivateEvent;
 
     private void Start()
     {

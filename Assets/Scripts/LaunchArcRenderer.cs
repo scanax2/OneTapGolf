@@ -6,7 +6,7 @@ using UnityEngine.Events;
 public class LaunchArcRenderer : MonoBehaviour
 {
     [SerializeField] private int resolution = 20;
-    [SerializeField] float angle = 45;
+    [SerializeField] private float angle = 45;
 
     private bool display = false;
     private LineRenderer lr;

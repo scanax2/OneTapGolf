@@ -80,7 +80,7 @@ public class GolfHoleController : MonoBehaviour
             startPointPosition.y, 
             startPointPosition.z); 
 
-        // Draws a blue line from this transform to the target
+        // Draws a white line from this transform to the target
         Gizmos.color = Color.white;
         Debug.DrawLine(startPointPosition, endPointPosition, Color.white, Time.deltaTime);
     }
